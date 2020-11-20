@@ -33,16 +33,20 @@
     <th>Subject</th>
     <th>Paper Id</th>
     <th>Student Count</th>
+    <th colspan="2">Action</th>
   </tr>
   <?php 
-    $sql = "SELECT * FROM paper WHERE lect_email = '$lectId'";
-    
+    $myPapers = $db->fetchPapers($lectId);
+    foreach ($myPapers as $paper) {
+        echo "<tr>
+            <td>".$paper['subject_name']."</td>
+            <td>".$paper['paper_id']."</td>
+            <td>5</td>
+            <td><a href='edit_paper.php?get=".$paper['paper_id']."'>Edit</a></td>
+            <td><a href='test.php'>Delete</a></td>
+        </tr>";
+    }
   ?>
-  <tr>
-    <td>Paris spécialités</td>
-    <td>Marie Bertrand</td>
-    <td>France</td>
-  </tr>
 </table>
 
 </body>
