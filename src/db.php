@@ -59,12 +59,57 @@ class db {
             $store = $this->connection->query($query);
 
             if ($store->num_rows > 0) {
-            // output data of each row
-            while($row = $store->fetch_assoc()) {
-                array_push($result, $row);
-            }
+                // output data of each row
+                while($row = $store->fetch_assoc()) {
+                    array_push($result, $row);
+                }
             } else {
-            echo "0 results";
+                echo "0 results";
+            }
+            
+           
+           	if ($this->query->errno) {
+				$this->error('Unable to process MySQL query (check your params) - ' . $this->query->error);
+           	}
+            $this->query_closed = FALSE;
+            $this->query_count++;
+        } else {
+            $this->error('Unable to prepare MySQL statement (check your syntax) - ' . $this->connection->error);
+        }
+        
+        $this->query->close();
+        $this->query_closed = TRUE;
+		return $result;
+    }
+    
+     // Fetch papers list 
+	public function editPaper($email,$paperId) {
+        $result= array();
+        $query = "SELECT paper_id FROM paper WHERE lect_email = '$email' AND paper_id = '$paperId'";
+        if (!$this->query_closed) {
+            $this->query->close();
+        }
+		if ($this->query = $this->connection->prepare($query)) {
+            
+            //$this->query->execute();
+            //$result = $this->query->fetch();
+            $store = $this->connection->query($query);
+
+            if ($store->num_rows > 0) {
+                // If lecturer created the paper allow edit
+                $query = "SELECT * FROM questions WHERE paper_id = '$paperId'";
+                $store = $this->connection->query($query);
+
+                if ($store->num_rows > 0) {
+                    // display questions
+                    while($row = $store->fetch_assoc()) {
+                        array_push($result, $row);
+                    }
+                } else {
+                    echo "0 results";
+                }
+            } else {
+                echo "0 results";
             }
             
            
