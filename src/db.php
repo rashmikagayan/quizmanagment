@@ -151,7 +151,44 @@ class db {
         }
 		return $this;
     }
+    // Save edited paper
+    public function saveEditedPaper($qarr){
+        $query = "INSERT INTO questions(paper_id,qno,question,ans1,ans2,ans3,ans4,correct_answer) 
+        values('$qarr[0]','$qarr[1]','$qarr[2]','$qarr[3]','$qarr[4]','$qarr[5]','$qarr[6]','$qarr[7]')";
+        if (!$this->query_closed) {
+            $this->query->close();
+        }
+		if ($this->query = $this->connection->prepare($query)) {
+            $this->query->execute();
+           	if ($this->query->errno) {
+				$this->error('Unable to process MySQL query (check your params) - ' . $this->query->error);
+           	}
+            $this->query_closed = FALSE;
+			$this->query_count++;
+        } else {
+            $this->error('Unable to prepare MySQL statement (check your syntax) - ' . $this->connection->error);
+        }
+		return $this;
+    }
 
+    // Delete all questions from paper
+    public function deleteAllQuestions($paperId){
+        $query = "DELETE FROM questions WHERE paper_id = '$paperId'";
+        if (!$this->query_closed) {
+            $this->query->close();
+        }
+		if ($this->query = $this->connection->prepare($query)) {
+            $this->query->execute();
+           	if ($this->query->errno) {
+				$this->error('Unable to process MySQL query (check your params) - ' . $this->query->error);
+           	}
+            $this->query_closed = FALSE;
+			$this->query_count++;
+        } else {
+            $this->error('Unable to prepare MySQL statement (check your syntax) - ' . $this->connection->error);
+        }
+		return $this;
+    }
     // generate random string
     function generateRandomString($length = 5) {
         $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
