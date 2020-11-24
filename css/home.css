@@ -101,15 +101,20 @@ body {
     border-bottom: 1px solid rgb(172, 167, 167);
 }
 
-#questions .question .answer textarea {
-    height: 20px;
+#questions .question h3,
+#questions .question textarea {
+    color: #444;
 }
 
 #questions .question .quest textarea {
     height: 100px;
+    color: black;
 }
 
-#questions button {
+#questions .savebutton {
+    position: fixed;
+    top: 0;
+    right: 0;
     margin: 20px auto;
     height: 40px;
     font-size: 20px;

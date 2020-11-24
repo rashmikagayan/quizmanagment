@@ -97,7 +97,7 @@ class db {
 
             if ($store->num_rows > 0) {
                 // If lecturer created the paper allow edit
-                $query = "SELECT * FROM questions WHERE paper_id = '$paperId'";
+                $query = "SELECT * FROM questions WHERE paper_id = '$paperId' ORDER BY qno";
                 $store = $this->connection->query($query);
 
                 if ($store->num_rows > 0) {
