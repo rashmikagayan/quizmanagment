@@ -15,47 +15,57 @@ class db {
 		$this->connection->set_charset($charset);
     }
     
-    // Lecturer Login in
+    // Student Join
 
-    public function lectLogin($email,$pass){
-        $paperId = $this->generateRandomString(6);  
-        $query = "SELECT * FROM lecturer WHERE email = '$email' && password = '$pass'";
+    public function joinExam($stdId,$password){
+        // Check if the student exist
+        $query = "SELECT * FROM students WHERE student_id = '$stdId'";
         if (!$this->query_closed) {
             $this->query->close();
         }
 		if ($this->query = $this->connection->prepare($query)) {
             
-            $this->query->execute();
-           	if ($this->query->errno) {
-				$this->error('Unable to process MySQL query (check your params) - ' . $this->query->error);
-           	}
-            $this->query_closed = FALSE;
-            $this->query_count++;
-            $this->createSession($email);
+            $store = $this->connection->query($query);
+
+            if ($store->num_rows > 0) {
+                // output data of each row
+                while($row = $store->fetch_assoc()) {
+                    if($row['password']==$password){
+                        $this->createSession($stdId);
+                    }else{
+                        echo "Wrong pass";
+                    }
+                }
+            } else {
+                $query = "INSERT INTO  students(student_id,password) VALUES('$stdId', '$password')";
+                $this->query = $this->connection->prepare($query);
+                $this->query->execute();
+                $this->createSession($stdId);
+            }
+           	
         } else {
             $this->error('Unable to prepare MySQL statement (check your syntax) - ' . $this->connection->error);
         }
-
+        
+        $this->query_closed = TRUE;
 		return $this;
     }
 
 
-    private function createSession($email){
+    private function createSession($studentId){
         $_SESSION['id'] = $this->generateRandomString(10);
-        $_SESSION['email'] = $email;
+        $_SESSION['email'] = $studentId;
     }
 
     // Fetch papers list 
-	public function fetchPapers($email) {
+	public function fetchPapers($studentId) {
         $result= array();
-        $query = "SELECT * FROM paper WHERE lect_email = '$email'";
+        $query = "SELECT * FROM `paper` INNER JOIN joined_exams ON paper.paper_id = joined_exams.paper_id WHERE joined_exams.student_id = '$studentId'";
         if (!$this->query_closed) {
             $this->query->close();
         }
 		if ($this->query = $this->connection->prepare($query)) {
             
-            //$this->query->execute();
-            //$result = $this->query->fetch();
             $store = $this->connection->query($query);
 
             if ($store->num_rows > 0) {
@@ -69,10 +79,9 @@ class db {
             
            
            	if ($this->query->errno) {
-				$this->error('Unable to process MySQL query (check your params) - ' . $this->query->error);
+				$this->error('Unable to process MySQL query' . $this->query->error);
            	}
             $this->query_closed = FALSE;
-            $this->query_count++;
         } else {
             $this->error('Unable to prepare MySQL statement (check your syntax) - ' . $this->connection->error);
         }
@@ -81,18 +90,62 @@ class db {
         $this->query_closed = TRUE;
 		return $result;
     }
-    
-     // Fetch papers list 
-	public function editPaper($email,$paperId) {
-        $result= array();
-        $query = "SELECT paper_id FROM paper WHERE lect_email = '$email' AND paper_id = '$paperId'";
+
+    // Join exam
+    public function joinPaper($subjectCode,$stdId){
+        // Check if the paper exist
+        $query = "SELECT * FROM paper WHERE paper_id = '$subjectCode'";
         if (!$this->query_closed) {
             $this->query->close();
         }
 		if ($this->query = $this->connection->prepare($query)) {
             
-            //$this->query->execute();
-            //$result = $this->query->fetch();
+            $store = $this->connection->query($query);
+
+            if ($store->num_rows > 0) {
+                // output data of each row
+                $query = "SELECT * FROM joined_exams WHERE student_id = '$stdId' AND paper_id = '$subjectCode'";
+                if (!$this->query_closed) {
+                    $this->query->close();
+                }
+                if ($this->query = $this->connection->prepare($query)) {
+                    
+                    $store = $this->connection->query($query);
+
+                    if ($store->num_rows > 0) {
+                        // output data of each row
+                        echo "already joined";
+                    } else {
+                        $query = "INSERT INTO  joined_exams(student_id,paper_id) VALUES('$stdId', '$subjectCode')";
+                        $this->query = $this->connection->prepare($query);
+                        $this->query->execute();
+                    }
+                    
+                } else {
+                    $this->error('Unable to prepare MySQL statement (check your syntax) - ' . $this->connection->error);
+                }
+            } else {
+                echo "Wrong exam code";
+            }
+           	
+        } else {
+            $this->error('Unable to prepare MySQL statement (check your syntax) - ' . $this->connection->error);
+        }
+        
+        $this->query_closed = TRUE;
+		return $this;
+    }
+
+    
+     // Fetch papers list 
+	public function startPaper($paperId) {
+        $result= array();
+        $query = "SELECT paper_id FROM paper WHERE paper_id = '$paperId'";
+        if (!$this->query_closed) {
+            $this->query->close();
+        }
+		if ($this->query = $this->connection->prepare($query)) {
+            
             $store = $this->connection->query($query);
 
             if ($store->num_rows > 0) {
@@ -106,7 +159,7 @@ class db {
                         array_push($result, $row);
                     }
                 } else {
-                    echo "0 results";
+                echo "No questions added";
                 }
             } else {
                 echo "0 results";
@@ -114,10 +167,9 @@ class db {
             
            
            	if ($this->query->errno) {
-				$this->error('Unable to process MySQL query (check your params) - ' . $this->query->error);
+				$this->error('Unable to process MySQL query' . $this->query->error);
            	}
             $this->query_closed = FALSE;
-            $this->query_count++;
         } else {
             $this->error('Unable to prepare MySQL statement (check your syntax) - ' . $this->connection->error);
         }
@@ -142,51 +194,55 @@ class db {
             
             $this->query->execute();
            	if ($this->query->errno) {
-				$this->error('Unable to process MySQL query (check your params) - ' . $this->query->error);
+				$this->error('Unable to process MySQL query' . $this->query->error);
            	}
             $this->query_closed = FALSE;
-			$this->query_count++;
         } else {
             $this->error('Unable to prepare MySQL statement (check your syntax) - ' . $this->connection->error);
         }
 		return $this;
     }
     // Save edited paper
-    public function saveEditedPaper($qarr){
-        $query = "INSERT INTO questions(paper_id,qno,question,ans1,ans2,ans3,ans4,correct_answer) 
-        values('$qarr[0]','$qarr[1]','$qarr[2]','$qarr[3]','$qarr[4]','$qarr[5]','$qarr[6]','$qarr[7]')";
+    public function submitPaper($qno,$ansNum,$paperId,$stdId){
+        $query = "INSERT INTO submittions(paper_id,student_id,qno,answer) values('$paperId','$stdId','$qno','$ansNum')";
         if (!$this->query_closed) {
             $this->query->close();
         }
 		if ($this->query = $this->connection->prepare($query)) {
             $this->query->execute();
            	if ($this->query->errno) {
-				$this->error('Unable to process MySQL query (check your params) - ' . $this->query->error);
+				$this->error('Unable to process MySQL query' . $this->query->error);
            	}
             $this->query_closed = FALSE;
-			$this->query_count++;
         } else {
             $this->error('Unable to prepare MySQL statement (check your syntax) - ' . $this->connection->error);
         }
 		return $this;
     }
 
-    // Delete all questions from paper
-    public function deleteAllQuestions($paperId){
-        $query = "DELETE FROM questions WHERE paper_id = '$paperId'";
+
+    // Logout
+    public function logout(){
+        session_unset();
+        session_destroy(); 
+    }
+
+    // Delete Whole Paper
+    public function deletePaper($paperId){
+        $query = "DELETE FROM paper WHERE paper_id = '$paperId'";
         if (!$this->query_closed) {
             $this->query->close();
         }
 		if ($this->query = $this->connection->prepare($query)) {
             $this->query->execute();
            	if ($this->query->errno) {
-				$this->error('Unable to process MySQL query (check your params) - ' . $this->query->error);
+				$this->error('Unable to process MySQL query' . $this->query->error);
            	}
             $this->query_closed = FALSE;
-			$this->query_count++;
         } else {
             $this->error('Unable to prepare MySQL statement (check your syntax) - ' . $this->connection->error);
         }
+        $this->deleteAllQuestions($paperId);
 		return $this;
     }
     // generate random string
@@ -228,7 +284,12 @@ class db {
 	    if (is_float($var)) return 'd';
 	    if (is_int($var)) return 'i';
 	    return 'b';
-	}
+    }
+    
+
+
+
+    
 
 }
 ?>

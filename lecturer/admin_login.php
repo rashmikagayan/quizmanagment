@@ -7,14 +7,14 @@ if(isset($_POST['lecturer_login'])){
     $account = $db->lectLogin($email,$account);
 }
 if(isset($_SESSION['id'])){
-    header("Location: admin.php");
+    header("Location: index.php");
 }
 ?>
 <!DOCTYPE html>
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="stylesheet" href="/css/login.css">
+<link rel="stylesheet" href="/lecturer/css/login.css">
 </head>
 <body>
 

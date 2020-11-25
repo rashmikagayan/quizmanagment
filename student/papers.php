@@ -32,18 +32,18 @@
   <tr>
     <th>Subject</th>
     <th>Paper Id</th>
-    <th>Student Count</th>
+    <th>Results</th>
     <th colspan="2">Action</th>
   </tr>
   <?php 
-    $myPapers = $db->fetchPapers($lectId);
+    $myPapers = $db->fetchPapers($studentId);
     foreach ($myPapers as $paper) {
         echo "<tr>
             <td>".$paper['subject_name']."</td>
             <td>".$paper['paper_id']."</td>
             <td>5</td>
-            <td><a href='edit_paper.php?get=".$paper['paper_id']."'>Edit</a></td>
-            <td><a href='test.php'>Delete</a></td>
+            <td><a href='joinexam.php?get=".$paper['paper_id']."'>Start</a></td>
+            <td><a href='index.php?=".$paper['paper_id']."'>Results</a></td>
         </tr>";
     }
   ?>
